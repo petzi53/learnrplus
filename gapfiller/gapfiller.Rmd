@@ -13,9 +13,8 @@ runtime: shiny_prerendered
 
 ```{r setup, include=FALSE}
 library(learnr)
-library(checkr)
 library(ggplot2)
-tutorial_options(exercise.checker = checkr::check_for_learnr)
+library(stringr)
 knitr::opts_chunk$set(
         message = T,
         error = T,
@@ -30,6 +29,9 @@ knitr::opts_chunk$set(
 # source('www/check_test.R')
 theme_update(plot.title = element_text(hjust = 0.5, face = "bold"))
 # nff <- sort(c(108, 103, 252, 121, 93, 57, 40, 53, 22, 116, 98))
+correct = "<font color='green'>"
+incorrect = "<font color='red'>"
+no_text = "<font color='red'>[not filled]"
 ```
 
 # Sample Questions
@@ -47,27 +49,61 @@ bootstrapPage(
         " with abbreviation",
         div(style="display:inline-block",textInput(inputId="in4", label = NULL, value = NULL, width = '70px')),
         ".",
-        div(actionButton("action", label = "Show Solution")),
-        tags$hr(),
-        textOutput("displaySolution1"),
-        textOutput("displaySolution2"),
-        tags$hr()
+#        div(actionButton("action", label = "Show Solution")),
+        div(actionButton("action", "Show Solution", icon("fab fa-angellist"), 
+                style="color: #fff; background-color: #337ab7; border-color: #2e6da4")),
+        htmlOutput("displaySolution")
     )
 ```
 
 
 ```{r my-gap-solutions, context="server"}
+library(stringr)
 
-output$displaySolution2 <- renderText({ 
+output$displaySolution <- renderText({ 
     input$action
-    if (input$action == 0)
+    if (input$action == 0) # to prevent results shown first time immediately 
         return()
     else {
-    isolate(paste("The correct solution is:", 
-                  "We calculate a CI from the ", input$in1,
-                  " and use it to tell us about the ", input$in2,
-                  ". Half the length of the CI is called the ", input$in3,
-                  " with abbreviation", input$in4, "."))
+        if (input$in1 == 'sample'){
+            mark1 <- correct
+        } else if (input$in1 == ''){
+            mark1 <- no_text
+        } else {
+            mark1 <- incorrect
+        }
+        
+        if (input$in2 == 'population'){
+            mark2 <- correct
+        } else if (input$in2 == ''){
+            mark2 <- no_text
+        } else {
+            mark2 <- incorrect
+        }
+        
+        if (str_to_lower(str_trim(input$in3)) == 'margin of error'){
+            mark3 <- correct
+        } else if (input$in3 == ''){
+            mark3 <- no_text
+        } else {
+            mark3 <- incorrect
+        }
+        
+        if (input$in4 == 'MoE'){
+            mark4 <- correct
+        } else if (input$in4 == ''){
+            mark4 <- no_text
+        } else {
+            mark4 <- incorrect
+        }
+ 
+        isolate(paste0(
+          tags$hr(), incorrect, "Red", "</font>", " = Your solution was wrong.",
+          correct, " Green:", "</font>", " = Your solution was correct.", "<br /><br />",
+          " We calculate a CI from the ", mark1, input$in1, "</font>",
+          " and use it to tell us about the ", mark2, input$in2, "</font>",
+          ". Half the length of the CI is called the ", mark3, input$in3, "</font>",
+          " with abbreviation ", mark4, input$in4, "</font>", "."))
         }
   })
 
@@ -77,7 +113,42 @@ output$displaySolution2 <- renderText({
 
 
 
+```{r quiz1-1-2, eval=FALSE}
 
+# In `Learnr` there is no question type "Fill in the Gap". 
+# So I had simulated it with a MC question.
+quiz(caption = "Quiz 1.1 (2nd Part)",
+  question("We calculate a CI from the sample(1) / population(1) and use it to tell us about the sample(2) / population(2). Half the length of the CI is called the ?????, with
+abbreviation ??????.",
+    answer("sample(1)", correct = TRUE),
+    answer("population(1)"),
+    answer("sample(2)"),
+    answer("population(2)", correct = TRUE),
+    answer("confidence interval"),
+    answer("CI"),
+    answer("margin of error", correct = TRUE),
+    answer("MoE", correct = TRUE),
+    answer("point estimate"),
+    answer("PE"),
+    answer("sample size"),
+    answer("SS"),
+    random_answer_order = TRUE,
+    incorrect = "Incorrect. We calculate a CI from the sample(1) and use it to tell us about the population(2). Half the length of the CI is called the margin of error, with
+abbreviation MoE."
+  ),
+    question("If N, the sample size, is made four times as large, the CI length will be about ?????? what it was before, the precision will be lower / higher, and the researcher is likely to be more / less happy.",
+    answer("half", correct = TRUE),
+    answer("a quarter"),
+    answer("lower"),
+    answer("higher", correct = TRUE),
+    answer("more", correct = TRUE),
+    answer("less"),
+    random_answer_order = TRUE,
+    incorrect = "Incorrect. If N, the sample size, is made four times as large, the CI length will be about half what it was before, the precision will be higher, and the researcher is likely to be more happy."
+  )
+)
+
+```
 
 ```{r my-dist-ui2, context="render", eval=FALSE}
 
